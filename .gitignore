@@ -1,1 +1,4 @@
 env/
+js_messenger/js_messenger/__pycache__
+js_messenger/chat/__pycache__
+js_messenger/db.sqlite3
