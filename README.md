@@ -1,7 +1,7 @@
 # Application chat en ligne
 Projet de Techno Web II, qui consiste a faire une application de chat en ligne
 
-## Ce qu'on utilise
+## Requis
  - Django  
  - JQuery
  - BootStrapJS
