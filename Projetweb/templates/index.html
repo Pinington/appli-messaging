@@ -1,0 +1,106 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>ChatWeb - Bienvenue</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <style>
+    .welcome-page {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      color: white;
+      text-align: center;
+    }
+
+    .welcome-logo {
+      font-size: 60px;
+      margin-bottom: 20px;
+    }
+
+    .welcome-title {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+
+    .welcome-subtitle {
+      font-size: 18px;
+      opacity: 0.9;
+      margin-bottom: 40px;
+      max-width: 500px;
+      line-height: 1.5;
+    }
+
+    .welcome-buttons {
+      display: flex;
+      gap: 20px;
+    }
+
+    .welcome-btn {
+      padding: 15px 30px;
+      border-radius: 50px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.2s;
+    }
+
+    .welcome-btn-primary {
+      background: white;
+      color: #667eea;
+    }
+
+    .welcome-btn-primary:hover {
+      transform: translateY(-3px);
+    }
+
+    .welcome-btn-outline {
+      border: 2px solid white;
+      color: white;
+      background: transparent;
+    }
+
+    .welcome-btn-outline:hover {
+      background: white;
+      color: #667eea;
+    }
+
+    @media (max-width: 768px) {
+      .welcome-buttons {
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      .welcome-title {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body class="welcome-page">
+
+  <div class="welcome-logo">💬</div>
+  
+  <h1 class="welcome-title">Bienvenue sur ChatWeb</h1>
+  
+  <p class="welcome-subtitle">
+    Votre application de chat en temps réel. Discutez, partagez, collaborez.
+  </p>
+
+  <div class="welcome-buttons">
+    <a href="{% url 'accounts:login' %}" class="welcome-btn welcome-btn-primary">
+      Se connecter
+    </a>
+    <a href="{% url 'accounts:register' %}" class="welcome-btn welcome-btn-outline">
+      Créer un compte
+    </a>
+  </div>
+
+</body>
+</html>

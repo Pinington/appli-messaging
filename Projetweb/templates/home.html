@@ -1,0 +1,190 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>ChatWeb - Home</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo-text">ChatWeb</div>
+
+    <div class="header-right">
+      <span class="user-name">
+        Bonjour {{ request.user.username }}
+      </span>
+      <a href="{% url 'accounts:logout' %}" class="btn btn-outline">
+        Déconnexion
+      </a>
+    </div>
+  </header>
+
+  <!-- CONTENU PRINCIPAL -->
+  <div class="chat-layout">
+
+    <!-- SIDEBAR SALONS -->
+    <aside class="sidebar">
+     <h3 class="sidebar-title">Salons</h3>
+    <ul class="room-list">
+       {% for room in rooms %}
+       <li class="room {% if room.id|stringformat:'s' == active_room_id %}active{% endif %}">
+      <a href="{% url 'chat:home' %}?room={{ room.id }}">
+        # {{ room.nom }}
+      </a>
+      </li>
+      {% empty %}
+      <li class="room">Aucun salon disponible</li>
+      {% endfor %}
+    </ul>
+
+    <a href="{% url 'chat:create_room' %}" class="btn btn-primary btn-full">
+            + Créer un salon
+    </a>
+    </aside>
+
+    <!-- ZONE CHAT -->
+    <main class="chat-area">
+      {% if active_room %}
+      <div class="chat-header">
+        <h2># {{ active_room.nom }}</h2>
+        <p class="room-description">{{ active_room.description }}</p>
+
+        {% if is_admin %}
+          <!-- Delete salon button -->
+          <form method="post" action="{% url 'chat:delete_salon' active_room.id %}"
+                onsubmit="return confirm('Supprimer ce salon définitivement ?');"
+                style="display:inline;">
+            {% csrf_token %}
+            <button class="btn btn-danger">🗑 Supprimer le salon</button>
+          </form>
+        {% endif %}
+      </div>
+      
+      <div class="messages-container" id="messages-container">
+        {% for message in messages %}
+        <div class="message {% if message.auteur == request.user %}message-sent{% else %}message-received{% endif %}">
+          <div class="message-header">
+            <strong class="message-author">{{ message.auteur.username }}</strong>
+            <span class="message-time">{{ message.date_envoi|date:"H:i" }}</span>
+
+            {% if is_admin %}
+              <!-- Delete message button -->
+              <button class="delete-msg-btn" data-message-id="{{ message.id }}" >❌</button>
+
+              <!-- Ban user button, not for self -->
+              {% if message.auteur != request.user %}
+                <button class="ban-btn" data-user-id="{{ message.auteur.id }}">🚫</button>
+              {% endif %}
+            {% endif %}
+          </div>
+          <div class="message-content">{{ message.contenu }}</div>
+        </div>
+        {% empty %}
+        <div class="no-messages">
+          <p>Soyez le premier à envoyer un message ! 👋</p>
+        </div>
+        {% endfor %}
+      </div>
+      
+      <div class="message-input-area">
+        <form id="send-message-form" method="post" action="{% url 'chat:send_message' %}">
+          {% csrf_token %}
+          <input type="hidden" name="room_id" value="{{ active_room.id }}">
+          <input type="text" 
+                name="content" 
+                placeholder="Tapez votre message..." 
+                autocomplete="off"
+                id="message-input"
+                required>
+          <button type="button" class="emoji-btn" id="emoji-btn">😊</button>
+          <div id="emoji-picker" class="emoji-picker">
+            <span class="emoji">😀</span>
+            <span class="emoji">😂</span>
+            <span class="emoji">❤️</span>
+            <span class="emoji">👍</span>
+            <span class="emoji">💪</span>
+            <span class="emoji">😍</span>
+            <span class="emoji">😡</span>
+            <span class="emoji">🎊</span>
+            <span class="emoji">🍻</span>
+            <span class="emoji">⚽</span>
+            <span class="emoji">🥳</span>
+            <span class="emoji">🤑</span>
+            <span class="emoji">🤠</span>
+            <span class="emoji">❣️</span>
+            <span class="emoji">💙</span>
+            <span class="emoji">🥶</span>
+            <span class="emoji">😤</span>
+          </div>
+          <button type="submit" class="send-btn">Envoyer</button>
+        </form>
+
+
+        <!-- EXISTING MESSAGE CHECK JS -->
+        <script>
+          let lastMessagesCount = 0;
+
+          function updateMessages(messages) {
+            const container = document.getElementById('messages-container');
+            if (!container) return;
+            if (messages.length === lastMessagesCount) return;
+            container.innerHTML = '';
+            messages.forEach(msg => {
+              const messageClass = msg.author === "{{ request.user.username }}" ? 'message-sent' : 'message-received';
+              const messageHTML = `
+                <div class="message ${messageClass}">
+                  <div class="message-header">
+                    <strong class="message-author">${msg.author}</strong>
+                    <span class="message-time">${msg.time}</span>
+
+                    ${msg.is_admin ? `
+                      <button class="delete-msg-btn" data-message-id="{{ message.id }}">❌</button>
+                      ${msg.author !== window.currentUser
+                        ? `<button class="ban-btn" data-user-id="{{ message.auteur.id }}">🚫</button>`
+                        : ''}
+                    ` : ''}
+                  </div>
+
+                  <div class="message-content">${msg.content}</div>
+                </div>
+              `;
+              container.innerHTML += messageHTML;
+            });
+            container.scrollTop = container.scrollHeight;
+            if (messages.length > lastMessagesCount) {
+              const originalTitle = document.title;
+              document.title = "💬 Nouveau message - ChatWeb";
+              setTimeout(() => { document.title = originalTitle; }, 1000);
+            }
+            lastMessagesCount = messages.length;
+          }
+
+        </script>
+
+      </div>
+      {% else %}
+      <div class="chat-placeholder">
+        <h2>💬 Discussion</h2>
+        <p>Sélectionne un salon pour commencer à discuter.</p>
+      </div>
+      {% endif %}
+    </main>
+
+  </div>
+<!-- ADMIN JS FUNCTIONS -->
+<script>
+    window.CSRF_TOKEN = "{{ csrf_token }}";
+    window.currentUser = "{{ request.user.username }}";
+</script>
+<script>
+    // Ces variables seront accessibles dans ton actions.js
+    const currentRoomId = "{{ active_room.id }}";      // ID du salon actif
+    const currentUser = "{{ request.user.username }}"; // Utilisateur connecté
+    const isAdmin = {{ is_admin|yesno:"true,false" }}; // Pour savoir si on est admin
+</script>
+<script src="{% static 'js/actions.js' %}"></script>
+</body>
+</html>
